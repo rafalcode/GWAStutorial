@@ -1,4 +1,4 @@
-# Genome-wide association (GWA) tutorial
+# Genome-wide association (GWA) tutorial quantative analyss
 
 ## fork to rafalcode
 * some scripts tried to install packages: that is not the job of scripts.
