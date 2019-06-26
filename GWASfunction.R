@@ -1,5 +1,7 @@
-GWAA <- function(genodata=genotypes, phenodata=phenotypes, family = gaussian, filename=NULL, append=FALSE, workers=getOption("mc.cores",2L), flip=TRUE,
-                 select.snps=NULL, hosts=NULL, nSplits=10){
+# three functions here
+
+GWAA <- function(genodata=genotypes, phenodata=phenotypes, family = gaussian, filename=NULL, append=FALSE, workers=getOption("mc.cores",2L), flip=TRUE, select.snps=NULL, hosts=NULL, nSplits=10)
+{
       if (!require(doParallel)) { stop("Missing doParallel package") }
       #Check that a filename was specified
       if(is.null(filename)) stop("Must specify a filename for output.")
@@ -68,14 +70,11 @@ GWAA <- function(genodata=genotypes, phenodata=phenotypes, family = gaussian, fi
       return(print("Done."))
 }
 
-
 # ---- manhattan ----
 # Receives a data.frame of SNPs with Neg_logP, chr, position, and type.
 # Plots Manhattan plot with significant SNPs highlighted.
-GWAS_Manhattan <- function(GWAS, col.snps=c("black","gray"),
-                           col.detected=c("blue"), col.imputed=c("red"), col.text="black",
-                           title="GWAS Tutorial Manhattan Plot", display.text=TRUE, bonferroni.alpha=0.05,
-                           bonferroni.adjustment=1000000, Lstringent.adjustment=10000) {
+GWAS_Manhattan <- function(GWAS, col.snps=c("black","gray"), col.detected=c("blue"), col.imputed=c("red"), col.text="black", title="GWAS Tutorial Manhattan Plot", display.text=TRUE, bonferroni.alpha=0.05, bonferroni.adjustment=1000000, Lstringent.adjustment=10000)
+{
       bonferroni.thresh <- -log10(bonferroni.alpha / bonferroni.adjustment)
       Lstringent.thresh <- -log10(bonferroni.alpha / Lstringent.adjustment)
       xscale <- 10000000
@@ -127,7 +126,8 @@ GWAS_Manhattan <- function(GWAS, col.snps=c("black","gray"),
 # ---- map2gene ----
 # Returns the subset of SNPs that are within extend.boundary of gene
 # using the coords table of gene locations.
-map2gene <- function(gene, coords, SNPs, extend.boundary = 5000) {
+map2gene <- function(gene, coords, SNPs, extend.boundary = 5000)
+{
       coordsSub <- coords[coords$gene == gene,] #Subset coordinate file for spcified gene
       coordsSub$start <- coordsSub$start - extend.boundary # Extend gene boundaries
       coordsSub$stop <- coordsSub$stop + extend.boundary
@@ -135,6 +135,3 @@ map2gene <- function(gene, coords, SNPs, extend.boundary = 5000) {
                            SNPs$chr == coordsSub$chr,] #Subset for SNPs in gene
       return(data.frame(SNPsub, gene = gene, stringsAsFactors = FALSE))
 }
-      
-      
-      
