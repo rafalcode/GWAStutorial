@@ -2,7 +2,9 @@
 
 GWAA <- function(genodata=genotypes, phenodata=phenotypes, family = gaussian, filename=NULL, append=FALSE, workers=getOption("mc.cores",2L), flip=TRUE, select.snps=NULL, hosts=NULL, nSplits=10)
 {
-      if (!require(doParallel)) { stop("Missing doParallel package") }
+      if (!require(doParallel)) {
+          stop("Missing doParallel package")
+      }
       #Check that a filename was specified
       if(is.null(filename)) stop("Must specify a filename for output.")
       #Check that the genotype data is of class 'SnpMatrix'

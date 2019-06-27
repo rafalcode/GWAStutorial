@@ -1,9 +1,12 @@
-# Genome-wide association (GWA) tutorial quantative analyss
+# Genome-wide association (GWA) tutorial quantitative analyss
 
 ## fork to rafalcode
 * some scripts tried to install packages: that is not the job of scripts.
 * packages should all be pre-installed.
-
+* takes about 3 hours to run, even when num.thread is set to 4 (although Lpruning() only ever seems to run 1 thread)
+* allinone.R takes the three scripts and puts them into one.
+* there is a prepath variable saying where the data is, you may need to change this.
+* output0.txt can be useful, it gives the typical console output for a successful run.
 
 ## Additional files
 

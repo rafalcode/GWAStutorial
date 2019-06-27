@@ -1,0 +1,15 @@
+if(!require("snpStats")) {
+        stop("snpStats is required for this script. Please install it on your system.")
+}
+if(!require("doParallel")) {
+        stop("doParallel is required for this script. Please install it on your system.")
+}
+if(!require("SNPRelate")) {
+        stop("SNPRelate is required for this script. Please install it on your system.")
+}
+if(!require("GenABEL")) {
+        stop("GenABEL is required for this script. Please install it on your system.")
+}
+if(!require("dplyr")) {
+        stop("dplyr is required for this script. Please install it on your system.")
+}
