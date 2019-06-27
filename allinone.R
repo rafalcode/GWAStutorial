@@ -9,7 +9,7 @@ pathM <- paste0(prepath[1], "Genomics/108Malay_2527458snps", c(".bed", ".bim", "
 pathI <- paste0(prepath[1], "Genomics/105Indian_2527458snps", c(".bed", ".bim", ".fam"))
 pathC <- paste0(prepath[1], "Genomics/110Chinese_2527458snps", c(".bed", ".bim", ".fam"))
 if(!file.exists(pathM[1])) {
-    stop("some of your data files don't exist")
+    stop("Some of your data files don't exist. Note there is a prepath hardcoded, you may need to edit.")
 }
 
 # now use the snpStats package to read them into three objects defined by variable names.
