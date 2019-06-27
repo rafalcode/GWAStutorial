@@ -2,7 +2,9 @@
 # packages prereqs, check they are all there
 source("pkg.prereqs")
 # hardcode for time being, need to get rid of this later
-prepath <- c("/home/rf73/neiproj/public/")
+# prepath <- c("/home/rf73/neiproj/public/") # rf73 machine
+prepath <- c("/root/public/") # docker machine
+setwd("/root/dockspace")
 
 # we want to read in a bim/bed/fam file triple, create a 3 element string vector for the path to each one.
 pathM <- paste0(prepath[1], "Genomics/108Malay_2527458snps", c(".bed", ".bim", ".fam"))
@@ -16,7 +18,7 @@ if(!file.exists(pathM[1])) {
 SNP_M <- read.plink(pathM[1], pathM[2], pathM[3])
 SNP_I <- read.plink(pathI[1], pathI[2], pathI[3])
 SNP_C <- read.plink(pathC[1], pathC[2], pathC[3])
-
+browser()
 
 if( ncol(SNP_C$genotypes) != ncol(SNP_I$genotypes)) {
     stop("Different number of columns in input files detected. This is not allowed.")
