@@ -95,6 +95,7 @@ genData$LIP <- genData$LIP[het_call,]
 # LD and kinship coeff
 ld <- .2
 kin <- .1
+cat(paste0("About to run via snpgdsBED2GDS() ...\n"))
 snpgdsBED2GDS(bed.fn = "convertGDS.bed", bim.fn = "convertGDS.bim", fam.fn = "convertGDS.fam", out.gdsfn = "myGDS", cvt.chr = "char")
 genofile <- snpgdsOpen("myGDS", readonly = F)
 gds.ids <- read.gdsn(index.gdsn(genofile,  "sample.id"))
@@ -103,28 +104,29 @@ add.gdsn(genofile, "sample.id", gds.ids, replace = T)
 geno.sample.ids <- rownames(genData$SNP)
 
 # First filter for LD
-snpSUB <- snpgdsLDpruning(genofile, ld.threshold = ld,
-                          sample.id = geno.sample.ids,
-                          snp.id = colnames(genData$SNP))
+cat(paste0("About to filter via snpgdsLDpruning() ...\n"))
+# quite a demanding function this one, need the threads (not in original script)
+snpSUB <- snpgdsLDpruning(genofile, ld.threshold = ld, sample.id = geno.sample.ids, snp.id = colnames(genData$SNP), num.thread = 4, verbose = TRUE)
 snpset.ibd <- unlist(snpSUB, use.names = F)
 # And now filter for MoM
-ibd <- snpgdsIBDMoM(genofile, kinship = T,
-                    sample.id = geno.sample.ids,
-                    snp.id = snpset.ibd,
-                    num.thread = 4)
+cat(paste0("About to filter via snpgdsIBDMoM() ...\n"))
+ibd <- snpgdsIBDMoM(genofile, kinship = T, sample.id = geno.sample.ids, snp.id = snpset.ibd, num.thread = 4)
+cat(paste0("Completed snpgdsIBDMoM(), now snpgdsIBDSelection() ...\n"))
 ibdcoef <- snpgdsIBDSelection(ibd)
+cat(paste0("Completed snpgdsIBDSelection().\n"))
 ibdcoef <- ibdcoef[ibdcoef$kinship >= kin,]
 
 # worked fine up to here.
 
 # Filter samples out
 related.samples <- NULL
+cat(paste0("About to start snpgdsPCA() ...\n"))
+cat(paste0("ibdcoef came out with ", nrow(ibdcoef), "number of rows\n"))
 while (nrow(ibdcoef) > 0) {
       # count the number of occurrences of each and take the top one
       sample.counts <- arrange(count(c(ibdcoef$ID1, ibdcoef$ID2)), -freq)
       rm.sample <- sample.counts[1, 'x']
-      cat("Removing sample", as.character(rm.sample), 'too closely related to', sample.counts[1, 'freq'],'other samples.\n')
-      
+      cat("Removing sample ", as.character(rm.sample), " as it is too closely related to ", sample.counts[1, 'freq'], " other samples.\n")
       # remove from ibdcoef and add to list
       ibdcoef <- ibdcoef[ibdcoef$ID1 != rm.sample & ibdcoef$ID2 != rm.sample,]
       related.samples <- c(as.character(rm.sample), related.samples)
@@ -133,16 +135,16 @@ genData$SNP <- genData$SNP[!(rownames(genData$SNP) %in% related.samples),]
 genData$LIP <- genData$LIP[!(rownames(genData$LIP) %in% related.samples),]
 
 # PCA
-pca <- snpgdsPCA(genofile, sample.id = geno.sample.ids, snp.id = snpset.ibd, num.thread = 1)
-pctab <- data.frame(sample.id = pca$sample.id,
-                    PC1 = pca$eigenvect[,1],
-                    PC2 = pca$eigenvect[,2],
-                    stringsAsFactors = F)
+cat(paste0("About to start snpgdsPCA() ...\n"))
+pcaout <- snpgdsPCA(genofile, sample.id = geno.sample.ids, snp.id = snpset.ibd, num.thread = 4)
+
+cat(paste0("Completed snpgdsPCA(), rendering into data.frame ...\n"))
+pctab <- data.frame(sample.id = pcaout$sample.id, PC1 = pcaout$eigenvect[,1], PC2 = pcaout$eigenvect[,2], stringsAsFactors = FALSE)
 
 origin <- read.delim("countryOrigin.txt", sep = "\t")
-origin <- origin[match(pca$sample.id, origin$sample.id),]
+origin <- origin[match(pcaout$sample.id, origin$sample.id),]
 
-pcaCol <- rep(rgb(0,0,0,.3), length(pca$sample.id)) # Set black for chinese
+pcaCol <- rep(rgb(0,0,0,.3), length(pcaout$sample.id)) # Set black for chinese
 pcaCol[origin$Country == "I"] <- rgb(1,0,0,.3) # red for indian
 pcaCol[origin$Country == "M"] <- rgb(0,.7,0,.3) # green for malay
 
@@ -156,13 +158,14 @@ dev.off()
 # NOTE: Ignore the first column of genData$LIP (gender)
 target <- "Cholesterol"
 
-phenodata <- data.frame("id" = rownames(genData$LIP),
-                        "phenotype" = scale(genData$LIP[,target]), stringsAsFactors = F)
+phenodata <- data.frame("id" = rownames(genData$LIP), "phenotype" = scale(genData$LIP[,target]), stringsAsFactors = FALSE)
 
 # Conduct GWAS (will take a while)
+cat(paste0("About to call GWAA() function ...\n"))
 start <- Sys.time()
-GWAA(genodata = genData$SNP, phenodata = phenodata, filename = paste(target, ".txt", sep = ""))
+GWAA(genodata = genData$SNP, phenodata = phenodata, filename = paste0(target, ".txt"))
 Sys.time() - start # benchmark
+cat(paste0("Completed GWAA() function.\n"))
 
 # Manhattan plot
 GWASout <- read.table(paste(target, ".txt", sep = ""), header = T, colClasses = c("character", rep("numeric",4)))
@@ -172,8 +175,10 @@ GWASout <- merge(GWASout, genData$MAP[,c("SNP", "chr", "position")])
 GWASout <- GWASout[order(GWASout$Neg_logP, decreasing = T),]
 
 png(paste(target, ".png", sep = ""), height = 500,width = 1000)
+cat(paste0("About to call GWAS_Manhattan() function ...\n"))
 GWAS_Manhattan(GWASout)
 dev.off()
+cat(paste0("Completed GWAS_Manhattan().\n"))
 
 # QQ plot using GenABEL estlambda function
 png(paste(target, "_QQplot.png", sep = ""), width = 500, height = 500)

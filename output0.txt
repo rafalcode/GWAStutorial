@@ -1,0 +1,93 @@
+At this stage I've allinone.R 
+includes all the code
+snpgdsLDpruning() showed itself to not really obey the nu,.tread-4
+as each time I went into htop there was only 1 R running.
+In any case it still took about 80 minutes to get to that part.
+
+here is a decent extract of the console output
+
+        BED file: "convertGDS.bed" in the SNP-major mode (Sample X SNP)
+        FAM file: "convertGDS.fam", DONE.
+        BIM file: "convertGDS.bim", DONE.
+^[[B^[[B^[[B^[[B^[[B^[[B^[[B^[[B^[[B^[[B^[[B^[[B^[[B^[[BThu Jun 27 10:40:13 2019        store sample id, snp id, position, and chromosome.
+        start writing: 323 samples, 2527458 SNPs ...
+        Thu Jun 27 10:40:13 2019        0%
+        Thu Jun 27 10:40:24 2019        100%
+Thu Jun 27 10:40:25 2019        Done.
+Optimize the access efficiency ...
+Clean up the fragments of GDS file:
+    open the file 'myGDS' (204.7M)
+    # of fragments: 38
+    save to 'myGDS.tmp'
+    rename 'myGDS.tmp' (204.7M, reduced: 240B)
+    # of fragments: 18
+About to filter via snpgdsLDpruning() ...
+SNP pruning based on LD:
+Excluding 1,731,790 SNPs (non-autosomes or non-selection)
+Excluding 0 SNP (monomorphic: TRUE, MAF: NaN, missing rate: NaN)
+Working space: 316 samples, 795,668 SNPs
+    using 4 (CPU) cores
+    sliding window: 500,000 basepairs, Inf SNPs
+    |LD| threshold: 0.2
+    method: composite
+Chromosome 0: 0.48%, 12,044/2,527,458
+12,044 markers are selected in total.
+Warning message:
+In snpgdsLDpruning(genofile, ld.threshold = ld, sample.id = geno.sample.ids,  :
+  The current version of 'snpgdsLDpruning()' does not support multi-threading.
+About to filter via snpgdsIBDMoM() ...
+IBD analysis (PLINK method of moment) on genotypes:
+Excluding 2,515,414 SNPs (non-autosomes or non-selection)
+Excluding 0 SNP (monomorphic: TRUE, MAF: NaN, missing rate: NaN)
+Working space: 316 samples, 12,044 SNPs
+    using 4 (CPU) cores
+PLINK IBD:    the sum of all selected genotypes (0,1,2) = 2287951
+Thu Jun 27 12:09:34 2019    (internal increment: 65536)
+[==================================================] 100%, completed in 0s
+Thu Jun 27 12:09:34 2019    Done.
+Completed snpgdsIBDMoM(), now snpgdsIBDSelection() ...
+Completed snpgdsIBDSelection().
+About to start snpgdsPCA() ...
+ibdcoef came out with 0number of rows
+About to start snpgdsPCA() ...
+Principal Component Analysis (PCA) on genotypes:
+Excluding 2,515,414 SNPs (non-autosomes or non-selection)
+Excluding 0 SNP (monomorphic: TRUE, MAF: NaN, missing rate: NaN)
+Working space: 316 samples, 12,044 SNPs
+    using 4 (CPU) cores
+PCA:    the sum of all selected genotypes (0,1,2) = 2287951
+CPU capabilities: Double-Precision SSE2
+Thu Jun 27 12:09:36 2019    (internal increment: 2372)
+[==================================================] 100%, completed in 0s
+Thu Jun 27 12:09:36 2019    Begin (eigenvalues and eigenvectors)
+Thu Jun 27 12:09:36 2019    Done.
+Completed snpgdsPCA(), rendering into data.frame ...
+null device 
+          1 
+About to call GWAA() function ...
+795668  SNPs included in analysis.
+316 samples included in analysis.
+socket cluster with 2 nodes on host ‘localhost’
+
+this then appeared to be genuinely using parallelism instead of merely just saying so.
+it also reports back stuff like
+
+GWAS SNPs 1-79567 (10% finished)
+GWAS SNPs 79568-159134 (20% finished)
+.
+.
+.
+GWAS SNPs 477403-556969 (70% finished)
+GWAS SNPs 556970-636536 (80% finished)
+GWAS SNPs 636537-716103 (90% finished)
+GWAS SNPs 716104-795668 (100% finished)
+[1] "Done."
+Time difference of 56.96577 mins
+Completed GWAA() function.
+About to call GWAS_Manhattan() function ...
+null device
+          1
+Completed GWAS_Manhattan().
+null device
+          1
+So, this is the way it gets finished.
